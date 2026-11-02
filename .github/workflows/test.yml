@@ -1,0 +1,130 @@
+name: Test setup-spark action
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+
+  build-setup-spark:
+    name: 📦 Lint and build setup-spark
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run eslint checks
+      run: npm run test
+
+    - name: Build action
+      run: npm run build
+
+    - name: Check dist/index.js is up-to-date with src/setup-spark.ts
+      run: git diff --exit-code dist
+
+
+  test-setup-spark:
+    name: ☑️ Run setup-spark
+    runs-on: ${{ matrix.versions.os }}
+    strategy:
+      matrix:
+        versions:
+          - os: 'ubuntu-latest'
+            spark: 3.5.3
+            hadoop: 3
+          - os: 'ubuntu-latest'
+            spark: 3.4.4
+            hadoop: 3
+          - os: 'ubuntu-latest'
+            spark: 3.3.2
+            hadoop: 3
+          - os: 'ubuntu-latest'
+            spark: 3.0.2
+            hadoop: 3.2
+          - os: 'ubuntu-latest'
+            spark: 3.1.2
+            hadoop: 3.2
+          - os: 'macos-latest'
+            spark: 3.5.3
+            hadoop: 3
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run setup-spark ${{ matrix.versions.spark }}
+      uses: ./
+      with:
+        spark-version: ${{ matrix.versions.spark }}
+        hadoop-version: ${{ matrix.versions.hadoop }}
+
+    - name: Check Spark
+      run: |
+        spark-submit --version
+        echo $SPARK_HOME
+
+
+
+  test-setup-spark-scala:
+    name: 🛢️ Run setup-spark with given Scala version
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        versions:
+          - spark: 3.5.3
+            hadoop: 3
+            scala: 2.13
+          - spark: 3.2.1
+            hadoop: 3.2
+            scala: 2.13
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run setup-spark ${{ matrix.versions.spark }}
+      uses: ./
+      with:
+        spark-version: ${{ matrix.versions.spark }}
+        hadoop-version: ${{ matrix.versions.hadoop }}
+        scala-version: ${{ matrix.versions.scala }}
+
+
+    - name: Check Spark
+      run: spark-submit --version
+
+
+  test-setup-spark-url:
+    name: 🔗 Run setup-spark with given URL
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        versions:
+          - spark: 3.4.1
+            hadoop: 3
+          - spark: 3.2.1
+            hadoop: 3.2
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run setup-spark ${{ matrix.versions.spark }}
+      uses: ./
+      with:
+        spark-version: ${{ matrix.versions.spark }}
+        hadoop-version: ${{ matrix.versions.hadoop }}
+        spark-url: 'https://archive.apache.org/dist/spark/spark-${{ matrix.versions.spark }}/spark-${{ matrix.versions.spark }}-bin-hadoop${{ matrix.versions.hadoop }}.tgz'
+
+    - name: Check Spark
+      run: spark-submit --version
