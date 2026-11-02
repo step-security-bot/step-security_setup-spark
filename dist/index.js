@@ -33318,6 +33318,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(7484));
 const tc = __importStar(__nccwpck_require__(3472));
 const fs = __importStar(__nccwpck_require__(9896));
+const crypto = __importStar(__nccwpck_require__(6982));
 const axios_1 = __importStar(__nccwpck_require__(7269));
 function validateSubscription() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -33437,12 +33438,39 @@ function run() {
         }
     });
 }
-// Helper function to download and unzip spark binary
+// Helper function to download and unzip spark binary, verifying checksum if available
 function download(url, installFolder) {
     return __awaiter(this, void 0, void 0, function* () {
         log(`Downloading Spark binary from ${url} to ${installFolder}`);
         const zipPath = yield tc.downloadTool(url);
+        yield verifyChecksumIfAvailable(url, zipPath);
         yield tc.extractTar(zipPath, installFolder);
+    });
+}
+function verifyChecksumIfAvailable(url, filePath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const checksumUrl = `${url}.sha512`;
+        let checksumPath;
+        try {
+            checksumPath = yield tc.downloadTool(checksumUrl);
+        }
+        catch (_a) {
+            core.warning(`⚠️ WARNING: Could not retrieve checksum file from ${checksumUrl}. ` +
+                `The integrity of the downloaded Spark archive has NOT been verified. ` +
+                `Proceeding is a security risk — ensure the download source is trusted.`);
+            return;
+        }
+        const checksumContent = fs.readFileSync(checksumPath, 'utf8').trim();
+        // Apache sha512 files are either plain hex or "hash  filename"
+        const expected = checksumContent.split(/\s+/)[0].toLowerCase();
+        const actual = crypto.createHash('sha512').update(fs.readFileSync(filePath)).digest('hex');
+        if (actual !== expected) {
+            core.warning(`⚠️ SECURITY WARNING: Checksum verification FAILED for ${url}. ` +
+                `Expected: ${expected} — Got: ${actual}. ` +
+                `The downloaded archive may be corrupted or tampered with. Proceeding anyway, but this is highly unsafe.`);
+            return;
+        }
+        log(`Checksum verified successfully for ${url}`);
     });
 }
 run();

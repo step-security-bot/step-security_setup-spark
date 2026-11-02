@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as tc from '@actions/tool-cache';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import axios, {isAxiosError} from 'axios';
 
 async function validateSubscription() {
@@ -128,11 +129,40 @@ async function run() {
   }
 }
 
-// Helper function to download and unzip spark binary
+// Helper function to download and unzip spark binary, verifying checksum if available
 async function download(url: string, installFolder: string) {
   log(`Downloading Spark binary from ${url} to ${installFolder}`);
   const zipPath = await tc.downloadTool(url);
+  await verifyChecksumIfAvailable(url, zipPath);
   await tc.extractTar(zipPath, installFolder);
+}
+
+async function verifyChecksumIfAvailable(url: string, filePath: string) {
+  const checksumUrl = `${url}.sha512`;
+  let checksumPath: string;
+  try {
+    checksumPath = await tc.downloadTool(checksumUrl);
+  } catch {
+    core.warning(
+      `⚠️ WARNING: Could not retrieve checksum file from ${checksumUrl}. ` +
+        `The integrity of the downloaded Spark archive has NOT been verified. ` +
+        `Proceeding is a security risk — ensure the download source is trusted.`
+    );
+    return;
+  }
+  const checksumContent = fs.readFileSync(checksumPath, 'utf8').trim();
+  // Apache sha512 files are either plain hex or "hash  filename"
+  const expected = checksumContent.split(/\s+/)[0].toLowerCase();
+  const actual = crypto.createHash('sha512').update(fs.readFileSync(filePath)).digest('hex');
+  if (actual !== expected) {
+    core.warning(
+      `⚠️ SECURITY WARNING: Checksum verification FAILED for ${url}. ` +
+        `Expected: ${expected} — Got: ${actual}. ` +
+        `The downloaded archive may be corrupted or tampered with. Proceeding anyway, but this is highly unsafe.`
+    );
+    return;
+  }
+  log(`Checksum verified successfully for ${url}`);
 }
 
 run();
