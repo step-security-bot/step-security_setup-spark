@@ -1,7 +1,7 @@
 ---
 name: "Setup Apache Spark"
 description: "Set up Apache Spark and add the command-line tools to the PATH."
-author: "vemonet"
+author: 'step-security'
 inputs:
   spark-version:
     description: "Apache Spark version to install, see https://spark.apache.org/downloads.html"
@@ -39,7 +39,7 @@ outputs:
   spark-version:
     description: "The installed Apache Spark version."
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/index.js"
 branding:
   icon: "star"

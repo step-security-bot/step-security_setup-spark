@@ -20,11 +20,11 @@ Check for the latest Spark versions at https://spark.apache.org/downloads.html
 Basic workflow:
 ```yaml
 steps:
-- uses: actions/setup-python@v5
+- uses: actions/setup-python@v7
   with:
     python-version: '3.10'
 
-- uses: actions/setup-java@v4
+- uses: actions/setup-java@v6
   with:
     java-version: '21'
     distribution: temurin
@@ -61,9 +61,3 @@ Check for the latest Spark versions at https://spark.apache.org/downloads.html
 The Hadoop version stays quite stable.
 
 The `setup-spark` action is tested for various versions of Spark and Hadoop in [`.github/workflows/test.yml`](https://github.com/step-security/setup-spark/blob/main/.github/workflows/test.yml)
-
-## 📝 Contributions
-
-Contributions are welcome! Feel free to test other Spark versions, and submit [issues](/issues), or [pull requests](https://github.com/step-security/setup-spark/blob/main/CONTRIBUTING.md).
-
-See the [contributor's guide](https://github.com/step-security/setup-spark/blob/main/CONTRIBUTING.md) for more details.
