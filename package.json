@@ -1,0 +1,79 @@
+{
+  "name": "setup-spark",
+  "version": "1.2.0",
+  "description": "Setup Spark in GitHub Actions workflows",
+  "main": "dist/index.js",
+  "private": true,
+  "scripts": {
+    "fmt": "prettier --write **/*.ts",
+    "test": "prettier --check **/*.ts && eslint ./src/**.ts --ignore-path .gitignore",
+    "build": "npm run fmt && npm run test && ncc build src/setup-spark.ts",
+    "dev": "npm run build && act -j test-setup-spark-scala"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/tool-cache": "^2.0.1",
+    "axios": "^1.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.8.4",
+    "@typescript-eslint/eslint-plugin": "^8.12.2",
+    "@typescript-eslint/parser": "^8.12.2",
+    "@vercel/ncc": "^0.38.2",
+    "auto-changelog": "^2.5.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-github": "^5.0.2",
+    "prettier": "^3.3.3"
+  },
+  "author": "step-security",
+  "license": "MIT",
+  "homepage": "https://github.com/step-security/setup-spark#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/step-security/setup-spark.git"
+  },
+  "bugs": {
+    "url": "https://github.com/step-security/setup-spark/issues"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "setup",
+    "apache",
+    "spark"
+  ],
+  "prettier": {
+    "printWidth": 120,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "none",
+    "bracketSpacing": false,
+    "arrowParens": "avoid",
+    "parser": "typescript"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:github/recommended"
+    ],
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 9,
+      "sourceType": "module",
+      "project": "./tsconfig.json"
+    },
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "rules": {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "import/no-namespace": "off",
+      "i18n-text/no-en": "off"
+    }
+  }
+}
